@@ -1,3 +1,5 @@
+import os
+
 from sqlalchemy import (
     Boolean,
     ForeignKey,
@@ -49,7 +51,6 @@ class Vote(Base):
 
 # Connect to your postgres DB
 engine = create_engine(
-    "postgresql://postgres:FQQXJyd3c2YkIu2XB0Nl@"
-    "containers-us-west-17.railway.app:6799/railway",
+    os.environ["RAILWAY_POSTGRESQL_URI"],
     echo=True,
 )
