@@ -98,7 +98,7 @@ async def get_vote_result(honest: Optional[bool] = None):
                 if competitor_id != contituent_id:
                     my_id = constituent_ids.index(contituent_id)
                     comp_id = constituent_ids.index(competitor_id)
-                    if rankings[my_id] > rankings[comp_id]:
+                    if rankings[my_id] < rankings[comp_id]:
                         result_matrix[my_id][comp_id] = 1
                     elif rankings[my_id] == rankings[comp_id]:
                         result_matrix[my_id][comp_id] = 0.5
@@ -109,7 +109,7 @@ async def get_vote_result(honest: Optional[bool] = None):
         const_result["score"] = score
         results.append(const_result)
 
-    return sorted(results, lambda r: r["score"], reverse=True)
+    return sorted(results, key=lambda r: r["score"], reverse=True)
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
