@@ -42,7 +42,7 @@ class Vote(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     voter_id: Mapped[int] = mapped_column(ForeignKey("voter.id"))
     constituent_id: Mapped[int] = mapped_column(ForeignKey("constituent.id"))
-    honest: bool = mapped_column(Boolean(), default=False)
+    honest: Mapped[bool] = mapped_column(Boolean(), default=False)
     rank: Mapped[int] = mapped_column(Integer())
     UniqueConstraint(voter_id, rank)
 
