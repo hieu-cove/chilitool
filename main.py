@@ -1,5 +1,6 @@
 import http
-from typing import List
+from random import shuffle
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
@@ -65,13 +66,50 @@ async def get_constituents():
     session = Session(engine)
     filter = select(Constituent)
     constituents = session.scalars(filter)
-    return list(map(lambda c: c.to_json(), constituents))
+    constituents = list(map(lambda c: c.to_json(), constituents))
+    shuffle(constituents)
+    return constituents
 
 
 @app.get("/vote/result")
-async def get_vote_result(honest: bool = True):
+async def get_vote_result(honest: Optional[bool] = None):
+    session = Session(engine)
 
-    return []
+    constituents = session.scalars(select(Constituent))
+    constituent_ids = list(map(lambda c: c.id, constituents))
+
+    vote_query = select(Vote)
+    if honest:
+        vote_query = vote_query.filter_by(honest=honest)
+    votes = session.scalars(vote_query)
+    voter_rankings = {}
+    for vote in votes:
+        if vote.voter_id not in voter_rankings:
+            voter_rankings[vote.voter_id] = {}
+        voter_rankings[vote.voter_id][vote.constituent_id] = vote.rank
+
+    result_matrix = [
+        [0 for _ in range(len(constituent_ids))] for _ in range(len(constituent_ids))
+    ]
+
+    for rankings in voter_rankings.values():
+        for contituent_id in rankings:
+            for competitor_id in rankings:
+                if competitor_id != contituent_id:
+                    my_id = constituent_ids.index(contituent_id)
+                    comp_id = constituent_ids.index(competitor_id)
+                    if rankings[my_id] > rankings[comp_id]:
+                        result_matrix[my_id][comp_id] = 1
+                    elif rankings[my_id] == rankings[comp_id]:
+                        result_matrix[my_id][comp_id] = 0.5
+
+    results = []
+    for index, score in enumerate(result_matrix):
+        const_result = constituents[index].to_json()
+        const_result["score"] = score
+        results.append(const_result)
+
+    return sorted(results, lambda r: r["score"], reverse=True)
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
