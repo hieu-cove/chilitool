@@ -20,6 +20,7 @@ class Rank(BaseModel):
 class VoteRequest(BaseModel):
     voter_name: str
     rankings: List[Rank]
+    honest: bool = False
 
 
 @app.put("/vote")
@@ -51,6 +52,7 @@ async def put_vote(req: VoteRequest):
             Vote(
                 voter_id=voter.id,
                 contituent_id=constituent.id,
+                honest=req.honest,
                 rank=rankings[constituent.id],
             )
         )
@@ -64,6 +66,12 @@ async def get_constituents():
     filter = select(Constituent)
     constituents = session.scalars(filter)
     return list(map(lambda c: c.to_json(), constituents))
+
+
+@app.get("/vote/result")
+async def get_vote_result(honest: bool = True):
+
+    return []
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
