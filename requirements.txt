@@ -6,8 +6,10 @@ httptools==0.4.0
 idna==3.3
 pydantic==1.9.2
 python-dotenv==0.20.0
+python-multipart==0.0.5
 PyYAML==6.0
 sniffio==1.2.0
+SQLAlchemy==2.0.0b1
 starlette==0.19.1
 typing_extensions==4.3.0
 uvicorn==0.18.3
