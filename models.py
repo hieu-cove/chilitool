@@ -46,11 +46,19 @@ class Vote(Base):
     constituent_id: Mapped[int] = mapped_column(ForeignKey("constituent.id"))
     honest: Mapped[bool] = mapped_column(Boolean(), default=False)
     rank: Mapped[int] = mapped_column(Integer())
-    UniqueConstraint(voter_id, rank)
+
+    def __repr__(self) -> str:
+        return (
+            f"Vote(id={self.id!r}, "
+            f"voter_id={self.voter_id!r}, "
+            f"voter_id={self.constituent_id!r}, "
+            f"honest={self.honest!r}, "
+            f"rank={self.rank!r})"
+        )
 
 
 # Connect to your postgres DB
 engine = create_engine(
     os.environ["RAILWAY_POSTGRESQL_URI"],
-    echo=True,
+    echo=False,
 )

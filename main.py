@@ -14,47 +14,60 @@ app = FastAPI()
 
 
 class Rank(BaseModel):
-    constituent_id: int
-    rank: int
+    constituentId: int
+    rank: Optional[int]
 
 
 class VoteRequest(BaseModel):
-    voter_name: str
-    rankings: List[Rank]
+    votername: str
     honest: bool = False
+    rankings: List[Rank]
 
 
 @app.put("/vote")
 async def put_vote(req: VoteRequest):
     session = Session(engine)
     voter = session.scalars(
-        select(Voter).filter_by(name=req.voter_name).limit(1)
+        select(Voter).filter_by(name=req.votername).limit(1)
     ).one_or_none()
     if not voter:
-        voter = Voter(name=req.voter_name)
+        voter = Voter(name=req.votername)
         session.add(voter)
         session.commit()
     rankings = {}
     check_rankings = {}
     for rank in req.rankings:
+        if not rank.rank:
+            continue
         if rank.rank in check_rankings:
             return HTTPException(
                 status_code=http.HTTPStatus.BAD_REQUEST,
-                detail=f"Ranked both {rank.constituent_id} "
+                detail=f"Ranked both {rank.constituentId} "
                 f"and {check_rankings[rank.rank]} number {rank.rank}",
             )
-        check_rankings[rank.rank] = rank.constituent_id
-        rankings[rank.constituent_id] = rank.rank
-    constituents = session.scalars(
-        select(Constituent).filter(Constituent.id.in_(list(rankings.keys())))
+        check_rankings[rank.rank] = rank.constituentId
+        rankings[rank.constituentId] = rank.rank
+    existing_votes = list(
+        session.scalars(
+            select(Vote)
+            .filter_by(voter_id=voter.id)
+            .filter(Vote.constituent_id.in_(list(rankings.keys())))
+        )
     )
-    for constituent in constituents:
+    updated_votes = []
+    for vote in existing_votes:
+        if vote.constituent_id in rankings:
+            vote.rank = rankings[vote.constituent_id]
+            updated_votes.append(vote)
+            del rankings[vote.constituent_id]
+    session.bulk_save_objects(updated_votes, update_changed_only=True)
+    for constituent_id in rankings:
         session.add(
             Vote(
                 voter_id=voter.id,
-                contituent_id=constituent.id,
+                constituent_id=constituent_id,
                 honest=req.honest,
-                rank=rankings[constituent.id],
+                rank=rankings[constituent_id],
             )
         )
     session.commit()
@@ -67,7 +80,15 @@ async def get_constituents():
     filter = select(Constituent)
     constituents = session.scalars(filter)
     constituents = list(map(lambda c: c.to_json(), constituents))
+
+    ben_chili = {}
+    for i, constituent in enumerate(constituents):
+        if constituent["name"] == "Doc Greve's Death Chili":
+            ben_chili = constituents.pop(i)
+            break
     shuffle(constituents)
+    # We have to make sure that Ben's chilli is always first
+    constituents.insert(0, ben_chili)
     return constituents
 
 
@@ -75,7 +96,7 @@ async def get_constituents():
 async def get_vote_result(honest: Optional[bool] = None):
     session = Session(engine)
 
-    constituents = session.scalars(select(Constituent))
+    constituents = list(session.scalars(select(Constituent)))
     constituent_ids = list(map(lambda c: c.id, constituents))
 
     vote_query = select(Vote)
@@ -93,20 +114,20 @@ async def get_vote_result(honest: Optional[bool] = None):
     ]
 
     for rankings in voter_rankings.values():
-        for contituent_id in rankings:
-            for competitor_id in rankings:
-                if competitor_id != contituent_id:
-                    my_id = constituent_ids.index(contituent_id)
-                    comp_id = constituent_ids.index(competitor_id)
-                    if rankings[my_id] < rankings[comp_id]:
-                        result_matrix[my_id][comp_id] = 1
-                    elif rankings[my_id] == rankings[comp_id]:
-                        result_matrix[my_id][comp_id] = 0.5
+        for my_index, my_id in enumerate(constituent_ids):
+            my_ranking = rankings.get(my_id)
+            for comp_index, comp_id in enumerate(constituent_ids):
+                comp_ranking = rankings.get(comp_id)
+                if my_index != comp_index and my_ranking:
+                    if not comp_ranking or my_ranking < comp_ranking:
+                        result_matrix[my_index][comp_index] += 1
+                    elif my_ranking == comp_ranking:
+                        result_matrix[my_index][comp_index] += 0.5
 
     results = []
     for index, score in enumerate(result_matrix):
         const_result = constituents[index].to_json()
-        const_result["score"] = score
+        const_result["score"] = sum(score)
         results.append(const_result)
 
     return sorted(results, key=lambda r: r["score"], reverse=True)
