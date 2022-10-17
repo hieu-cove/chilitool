@@ -18,7 +18,7 @@ export default {
     template: `
     <div class="row">
         <fieldset style="width: 100%">
-            <legend><h3>{{ name }}</h3></legend>
+            <legend><h3>Chili number {{ constituentId }}</h3></legend>
             <label :for="rankInputId" class="form-label">Rank</label>
             <select :id="rankInputId" :value="rank" @input="handleSetRank">
                 <option v-if="rank" value=""></option>
