@@ -35,17 +35,9 @@ async def put_vote(req: VoteRequest):
         session.add(voter)
         session.commit()
     rankings = {}
-    check_rankings = {}
     for rank in req.rankings:
         if not rank.rank:
             continue
-        if rank.rank in check_rankings:
-            return HTTPException(
-                status_code=http.HTTPStatus.BAD_REQUEST,
-                detail=f"Ranked both {rank.constituentId} "
-                f"and {check_rankings[rank.rank]} number {rank.rank}",
-            )
-        check_rankings[rank.rank] = rank.constituentId
         rankings[rank.constituentId] = rank.rank
     existing_votes = list(
         session.scalars(

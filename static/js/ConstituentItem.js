@@ -22,8 +22,8 @@ export default {
             <label :for="rankInputId" class="form-label">Rank</label>
             <select :id="rankInputId" :value="rank" @input="handleSetRank">
                 <option v-if="rank" value=""></option>
-                <option v-if="rank" :value="rank">{{rank}}</option>
-                <option v-for="availableRank in availableRanks" :value="availableRank">
+                <option v-if="rank == null" value=""></option>
+                <option v-for="availableRank in availableRanks" :value="availableRank" :selected="availableRank == rank">
                     {{availableRank}}
                 </option>
             </select>

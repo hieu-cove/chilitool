@@ -37,9 +37,7 @@ export default {
             function getRank(c) {
                 return c.rank;
             }
-            const allRanks = [...this.constituents.keys()].map((r) => r + 1);
-            const usedRanks = this.constituents.map(getRank).filter((r) => r);
-            return allRanks.filter((r) => !usedRanks.includes(r));
+            return [...this.constituents.keys()].map((r) => r + 1);
         }
     },
     template: `

@@ -40,11 +40,13 @@ createApp({
                 },
                 body: JSON.stringify(body)
             }).then((response) => response.json()
-            ).then(() => {
+            ).then((data) => {
                 this.votername = '';
                 this.honest = false;
                 this.constituents.length = 0;
                 this.fetchData();
+            }, (data) => {
+                console.log(data);
             });
         },
         handleSetConstituentsEvent(constituents) {
@@ -85,9 +87,22 @@ createApp({
                     <li>Decide whether to be honest.</li>
                     <li>Rank your most favorite chili 1.</li>
                     <li>Rank your second favorite chili 2.</li>
+                    <li>Chilis can have the same rank.</li>
                     <li>You can rank as many or as few chili as you want.</li>
-                    <li>Click submit at the bottom.</li>
+                    <li>All unranked chilis are treated as if they are the lowest ranked.</li>
+                    <li>Click submit at the bottom to submit your vote.</li>
+                    <li>You can revise your vote at any time. Just use the same name.</li>
                   </ol>
+                </div>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="collapse" style="width: 100%">
+                <input type="checkbox" id="collapse-about" aria-hidden="true">
+                <label for="collapse-about" aria-hidden="true">About voting method</label>
+                <div>
+                  <p>This voting method is called the Copeland's method. Read more <a href="https://en.wikipedia.org/wiki/Copeland%27s_method#Voting_mechanism">here</a>.</p>
                 </div>
             </div>
         </div>
