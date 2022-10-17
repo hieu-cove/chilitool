@@ -80,7 +80,8 @@ async def get_constituents():
             break
     shuffle(constituents)
     # We have to make sure that Ben's chilli is always first
-    constituents.insert(0, ben_chili)
+    if ben_chili:
+        constituents.insert(0, ben_chili)
     return constituents
 
 
