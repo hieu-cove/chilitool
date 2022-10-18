@@ -3,17 +3,15 @@ from sqlalchemy.orm import Session
 from models import Constituent, engine
 
 
-def add_constituents(engine):
+def reset_constituents(engine):
     session = Session(engine)
-    session.add(Constituent(name="Erin Wrobel"))
-    session.add(Constituent(name="Noah Teuscher"))
-    session.add(Constituent(name="Krystl Black"))
-    session.add(Constituent(name="Ed Akins"))
-    session.add(Constituent(name="Sara Laudeman"))
-    session.add(Constituent(name="Taylor Burdette"))
-    session.add(Constituent(name="Ashley Robertson"))
-    session.add(Constituent(name="Shawn Johnson"))
+    session.add(Constituent(id=1, name="Taylor Burdette"))
+    session.add(Constituent(id=2, name="Ashley Robertson"))
+    session.add(Constituent(id=3, name="Sara Laudeman"))
+    session.add(Constituent(id=4, name="Ed Akins"))
+    session.add(Constituent(id=5, name="Erin Wrobel"))
+    session.add(Constituent(id=6, name="Akshay Padwal"))
     session.commit()
 
 
-add_constituents(engine)
+reset_constituents(engine)

@@ -85,6 +85,17 @@ async def get_constituents():
     return constituents
 
 
+@app.get("/voters")
+async def get_voters():
+    session = Session(engine)
+    filter = select(Voter)
+    voters = session.scalars(filter)
+    voters = list(map(lambda c: c.to_json(), voters))
+
+    shuffle(voters)
+    return voters
+
+
 @app.get("/vote/result")
 async def get_vote_result(honest: Optional[bool] = None):
     session = Session(engine)
