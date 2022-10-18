@@ -25,7 +25,6 @@ createApp({
             if (honest !== "") {
                 url = url + `?honest=${honest}`
             }
-            console.log(url)
             this.constituents = [];
             fetch(url)
                 .then((response) => response.json())
@@ -34,7 +33,7 @@ createApp({
     },
     computed: {
         isVotingEnded() {
-            return new Date() >= new Date("2022-10-18T13:30Z");
+            return new Date() >= new Date("2022-10-18T17:30Z");
         }
     },
     template: `
