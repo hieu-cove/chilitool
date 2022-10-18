@@ -20,7 +20,7 @@ createApp({
         fetchData() {
             fetch('/constituents')
                 .then((response) => response.json())
-                .then((data) => this.constituents.push(...data));
+                .then((data) => { this.constituents = data; });
         },
         handleSubmit() {
             const body = {
@@ -43,7 +43,7 @@ createApp({
             ).then((data) => {
                 this.votername = '';
                 this.honest = false;
-                this.constituents.length = 0;
+                this.constituents = [];
                 this.fetchData();
             }, (data) => {
                 console.log(data);
@@ -53,8 +53,13 @@ createApp({
             this.constituents = constituents;
         },
     },
+    computed: {
+        isVotingEnded() {
+            return new Date() >= new Date("2022-10-18T17:30Z");
+        }
+    },
     template: `
-    <form style="background-color: white" @submit.prevent="handleSubmit" >
+    <form style="background-color: white" @submit.prevent="handleSubmit" v-if="!isVotingEnded">
         <div class="row">
             <fieldset style="width: 100%">
                 <legend><h1>Vote for your favorite chili!</h1></legend>
@@ -116,5 +121,8 @@ createApp({
             <button class="primary" @click="handleSubmit">Submit Vote</button>
         </div>
     </form>
+    <div class="row" v-if="isVotingEnded">
+        <h1>Voting has ended! Checkout of the <a href="/result">result</a>!</h1>
+    </div>
   `
 }).mount('#app')
